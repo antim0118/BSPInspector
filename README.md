@@ -8,6 +8,8 @@ Supported lumps: [LUMPS.md](https://github.com/antimYT/BSPInspector/blob/master/
 - Edit and Save changes
 - More lumps
 - Export/Import lumps (ex. to save time when lighting compiling takes long)
+- 3d viewer
+- Map comparer
 
 ## More screenshots:
 ![Lump table](https://raw.githubusercontent.com/antimYT/BSPInspector/master/_screenshots/1.png "Lump table")
