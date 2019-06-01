@@ -2,6 +2,8 @@
 
 ![Main window](https://raw.githubusercontent.com/antimYT/BSPInspector/master/_screenshots/0.png "Main window")
 
+### Download: [Releases](https://github.com/antimYT/BSPInspector/releases "Releases")
+
 Supported lumps: [LUMPS.md](https://github.com/antimYT/BSPInspector/blob/master/LUMPS.md "LUMPS.md")
 
 ## To do:
