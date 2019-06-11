@@ -127,5 +127,23 @@ namespace BSPInspector
             }
             return result;
         }
+
+        public static string TypeLastLevel(string str)
+        {
+            if (str.Contains(".")) str = str.Split('.').Last();
+            if (str.Contains("+")) str = str.Split('+').Last();
+            return str;
+        }
+
+        public static int GetTimestamp => (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+        public static void SaveFile(this Stream fileStream, string path)
+        {
+            using (var fs = File.Create(path))
+            {
+                fileStream.Seek(0, SeekOrigin.Begin);
+                fileStream.CopyTo(fs);
+            }
+        }
     }
 }

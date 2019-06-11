@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
 
 namespace BSPInspector
 {
@@ -40,10 +41,18 @@ namespace BSPInspector
             for (int i = 0; i < lumpslen; i++)
             {
                 var lump = bsp.Header.lumps[i];
-                if (lump.filelen == 0) { lumpsskip++; continue; }
+                //if (lump.fileofs == 0) { lumpsskip++; continue; } //skip empty
                 string lump_name = SourceBSPStructs.GetLump(i).ToString();
-                listBox_lumps.Items.Add($"{i}: {lump_name}");
+                ListViewItem item = new ListViewItem(new string[]
+                {
+                    i.ToString(),
+                    lump_name,
+                    lump.filelen.ToString(),
+                    lump.fileofs.ToString()
+                });
+                listView_lumps.Items.Add(item);
             }
+            listView_lumps.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             #endregion
 
             label_bspinfo.Text += $"Identifier={bsp.Header.ident} " + (bsp.Header.ident == SourceBSPStructs.VBSP ? "(Valid)" : "(Not valid)") + "\n" +
@@ -60,10 +69,16 @@ namespace BSPInspector
         private void Form1_Resize(object sender, EventArgs e)
         {
             textBox_bsp.Width = Width - 72;
-            listBox_lumps.Size = new Size(Width - 43, Height - 183);
+            listView_lumps.Size = new Size(Width - 43, Height - 183);
             button_parse.Top = Height - 70;
             button_readtext.Top = Height - 70;
-            label_lumpinfo.Top = Height - 70;
+
+            button_import.Location = new Point(Width - 134, Height - 70);
+            button_export.Location = new Point(Width - 78, Height - 70);
+        }
+        private void Form1_ResizeEnd(object sender, EventArgs e)
+        {
+            //PictureBoxRedraw();
         }
         #endregion
         #region Form closed
@@ -73,11 +88,14 @@ namespace BSPInspector
         }
         #endregion
         #region Form events
-        private void ListBox_lumps_SelectedIndexChanged(object sender, EventArgs e)
+
+        private void ListView_lumps_SelectedIndexChanged(object sender, EventArgs e)
         {
             //label_lumpinfo.Text
-            var lump = bsp.Header.lumps[listBox_lumps_index];
-            label_lumpinfo.Text = $"Lump info:    filelen={lump.filelen}    fileofs={lump.fileofs}    version={lump.version}";
+            //int ind = listView_lumps_index;
+            //if (ind == -1) return;
+            //var lump = bsp.Header.lumps[ind];
+            //label_lumpinfo.Text = $"Lump info:    filelen={lump.filelen}    fileofs={lump.fileofs}    version={lump.version}";
         }
 
         private void ListBox_lumps_DoubleClick(object sender, EventArgs e)
@@ -87,9 +105,9 @@ namespace BSPInspector
 
         private void Button_parse_Click(object sender, EventArgs e)
         {
-            if (listBox_lumps_index < 0) return;
-            var lump = bsp.Header.lumps[listBox_lumps_index];
-            var lumptype = SourceBSPStructs.GetLump(listBox_lumps_index);
+            if (listView_lumps_index < 0) return;
+            var lump = bsp.Header.lumps[listView_lumps_index];
+            var lumptype = SourceBSPStructs.GetLump(listView_lumps_index);
 
             if (lumptype == SourceBSPStructs.Lumps.LUMP_PAKFILE) //Lump 40
             {
@@ -179,21 +197,71 @@ namespace BSPInspector
 
         private void Button_readtext_Click(object sender, EventArgs e)
         {
-            if (listBox_lumps_index < 0) return;
-            var lump = bsp.Header.lumps[listBox_lumps_index];
+            if (listView_lumps_index < 0) return;
+            var lump = bsp.Header.lumps[listView_lumps_index];
             new FormShowText(lump.Read(bsp.BR), "ASCII Text of selected lump").ShowDialog();
         }
         #endregion
 
-        private int listBox_lumps_index
+        private int listView_lumps_index
         {
             get
             {
-                if (listBox_lumps.SelectedItem == null) return -1;
-                string val = (string)listBox_lumps.SelectedItem;
-                if (val.Contains(":")) return int.Parse(val.Split(':').First());
-                else return -1;
+                if (listView_lumps.SelectedItems.Count == 0) return -1;
+                var sel = listView_lumps.SelectedItems[0];
+                return int.Parse(sel.SubItems[0].Text);
             }
+        }
+
+        private void Button_import_Click(object sender, EventArgs e)
+        {
+            int ind = listView_lumps_index;
+            if (ind == -1) return;
+            var lump = bsp.Header.lumps[ind];
+
+            var ofd = new OpenFileDialog
+            {
+                Filter = "Binary file (*.bin)|*.bin",
+                DefaultExt = "bin",
+                FileName = $"{Path.GetFileNameWithoutExtension(BSPPath)}_{(SourceBSPStructs.Lumps)ind}"
+            };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                bsp.file.SaveFile($"{BSPPath}.backup{Utils.GetTimestamp}");
+                byte[] bytes = File.ReadAllBytes(ofd.FileName);
+                int new_fileofs = lump.fileofs;
+                if (bytes.Length > lump.filelen)
+                {
+                    new_fileofs = (int)(bsp.BW.BaseStream.Length + bytes.Length);
+                    bsp.BW.BaseStream.SetLength(bsp.BW.BaseStream.Length + bytes.Length);
+                }
+                bsp.BW.BaseStream.Seek(new_fileofs, SeekOrigin.Begin);
+                bsp.BW.Write(bytes);
+
+                int lumpsize = 4 + 4 + 4 + 4;
+                bsp.BR.BaseStream.Seek(4 + 4 + (lumpsize * ind), SeekOrigin.Begin);
+                bsp.BW.BaseStream.Seek(bsp.BR.BaseStream.Position, SeekOrigin.Begin);
+                bsp.BW.Write(new_fileofs);
+                bsp.BW.Write(bytes.Length);
+            }
+        }
+
+        private void Button_export_Click(object sender, EventArgs e)
+        {
+            int ind = listView_lumps_index;
+            if (ind == -1) return;
+            var lump = bsp.Header.lumps[ind];
+            bsp.BR.BaseStream.Seek(lump.fileofs, SeekOrigin.Begin);
+            byte[] bytes = bsp.BR.ReadBytes(lump.filelen);
+
+            var sfd = new SaveFileDialog
+            {
+                Filter = "Binary file (*.bin)|*.bin",
+                DefaultExt = "bin",
+                FileName = $"{Path.GetFileNameWithoutExtension(BSPPath)}_{(SourceBSPStructs.Lumps)ind}"
+            };
+            if (sfd.ShowDialog() == DialogResult.OK)
+                File.WriteAllBytes(sfd.FileName, bytes);
         }
     }
 }

@@ -22,14 +22,14 @@ namespace BSPInspector
 
         public void CreateTable<T>(T[] objs, bool isv2) where T : struct
         {
-            this.Text += TypeLastLevel(typeof(T).ToString());
+            this.Text += Utils.TypeLastLevel(typeof(T).ToString());
 
             FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
             PropertyInfo[] props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
             #region add columns
             foreach (FieldInfo info in fields)
             {
-                dataGridView1.Columns.Add(info.Name, $"{info.Name}\n[{TypeLastLevel(info.FieldType.ToString())}]");
+                dataGridView1.Columns.Add(info.Name, $"{info.Name}\n[{Utils.TypeLastLevel(info.FieldType.ToString())}]");
             }
             foreach (PropertyInfo info in props)
             {
@@ -92,12 +92,7 @@ namespace BSPInspector
             loader.CloseForm();
         }
 
-        private string TypeLastLevel(string str)
-        {
-            if (str.Contains(".")) str = str.Split('.').Last();
-            if(str.Contains("+")) str = str.Split('+').Last();
-            return str;
-        }
+        
 
 
         private void FormShowTable_Resize(object sender, EventArgs e)
