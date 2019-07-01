@@ -9,7 +9,6 @@ Supported lumps: [LUMPS.md](https://github.com/antimYT/BSPInspector/blob/master/
 ## To do:
 - Edit and Save changes
 - More lumps
-- Export/Import lumps (ex. to save time when lighting compiling takes long)
 - 3d viewer
 - Map comparer
 
