@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
+using System.Diagnostics;
 
 namespace BSPInspector
 {
@@ -111,12 +112,10 @@ namespace BSPInspector
 
             if (lumptype == SourceBSPStructs.Lumps.LUMP_PAKFILE) //Lump 40
             {
-                string filepath = $"{Application.StartupPath}/pak_temp.zip";
-                if (File.Exists(filepath)) File.Delete(filepath);
-                File.WriteAllBytes(filepath, lump.Parse<byte>(bsp.BR));
                 //SharpVPK.VpkArchive vpk = new SharpVPK.VpkArchive();
                 //vpk.Load(lump.Parse<byte>(bsp.BR), SharpVPK.VpkVersions.Versions.V1);
-                new FormFileBrowser(filepath).ShowDialog();
+                bsp.BR.BaseStream.Seek(lump.fileofs, SeekOrigin.Begin);
+                new FormFileBrowser(bsp.BR.ReadBytes(lump.filelen)).ShowDialog();
             }
             else
             {

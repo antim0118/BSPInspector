@@ -15,20 +15,22 @@ namespace BSPInspector
 {
     public partial class FormFileBrowser : Form
     {
-        private string zippath;
+        private byte[] zip;
         private ZipArchive ziparchive;
+        private MemoryStream MS;
         private List<string> folders;
 
-        public FormFileBrowser(string zippath)
+        public FormFileBrowser(byte[] zip)
         {
-            this.zippath = zippath;
+            this.zip = zip;
             InitializeComponent();
         }
 
         private void FormFileBrowser_Load(object sender, EventArgs e)
         {
             folders = new List<string>();
-            ziparchive = ZipFile.OpenRead(zippath);
+            MS = new MemoryStream(zip);
+            ziparchive = new ZipArchive(MS, ZipArchiveMode.Read);
             foreach (ZipArchiveEntry entry in ziparchive.Entries)
             {
                 //listView1.Items.Add(entry.FullName);
@@ -103,6 +105,7 @@ namespace BSPInspector
 
         private void FormFileBrowser_FormClosing(object sender, FormClosingEventArgs e)
         {
+            MS.Dispose();
             ziparchive.Dispose();
         }
 
