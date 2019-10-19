@@ -40,6 +40,8 @@ namespace BSPInspector
             int fieldsLen = fields.Length;
             int propsLen = props.Length;
 
+            label_count.Text = $"Count: {objsLen}";
+
             #region warning
             if (objsLen > 100000)
             {
@@ -99,6 +101,7 @@ namespace BSPInspector
         {
             dataGridView1.Size = new Size(Width - 25, Height - 85);
             button_ok.Location = new Point(Width - 68, Height - 74);
+            label_count.Location = new Point(label_count.Location.X, Height - 66);
         }
 
         private void Button_ok_Click(object sender, EventArgs e)

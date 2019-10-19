@@ -110,7 +110,12 @@ namespace BSPInspector
             var lump = bsp.Header.lumps[listView_lumps_index];
             var lumptype = SourceBSPStructs.GetLump(listView_lumps_index);
 
-            if (lumptype == SourceBSPStructs.Lumps.LUMP_PAKFILE) //Lump 40
+            if (lumptype == SourceBSPStructs.Lumps.LUMP_ENTITIES) //Lump 0
+            {
+                bsp.BR.BaseStream.Seek(lump.fileofs, SeekOrigin.Begin);
+                new FormEntityList(Encoding.ASCII.GetString(bsp.BR.ReadBytes(lump.filelen))).ShowDialog();
+            }
+            else if (lumptype == SourceBSPStructs.Lumps.LUMP_PAKFILE) //Lump 40
             {
                 //SharpVPK.VpkArchive vpk = new SharpVPK.VpkArchive();
                 //vpk.Load(lump.Parse<byte>(bsp.BR), SharpVPK.VpkVersions.Versions.V1);

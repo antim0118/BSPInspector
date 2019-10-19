@@ -1,7 +1,7 @@
 ### Lumps
 | Index  | Name  | Is supported?  |
 | ------------ | ------------ | ------------ |
-| 0  | LUMP_ENTITIES  | Yes, using ASCII text reader.  |
+| 0  | LUMP_ENTITIES  | Yes.  |
 | 1  | LUMP_PLANES  | Yes.  |
 | 2  | LUMP_TEXDATA  | Yes.  |
 | 3  | LUMP_VERTEXES  | Yes.  |
